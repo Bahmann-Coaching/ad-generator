@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ad-Dateinamen Generator | Bahmann Coaching</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      background: linear-gradient(145deg, #0a0a0a 0%, #111827 50%, #0a0a0a 100%);
+      font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
+      color: #e2e8f0;
+      padding: 24px;
+    }
+
+    .container { max-width: 520px; margin: 0 auto; }
+
+    .header { margin-bottom: 28px; text-align: center; }
+
+    .header-tag {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: #f97316;
+      margin-bottom: 8px;
+    }
+
+    .header h1 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 26px;
+      font-weight: 700;
+      color: #f8fafc;
+      line-height: 1.2;
+    }
+
+    .schema-bar {
+      margin-top: 12px;
+      padding: 8px 16px;
+      background: rgba(15, 23, 42, 0.6);
+      border-radius: 8px;
+      border: 1px solid #1e293b;
+      display: inline-flex;
+      gap: 2px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .schema-block {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .schema-sep { color: #334155; }
+
+    .form { display: flex; flex-direction: column; gap: 18px; }
+
+    .field-label {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    .field-input, .field-select {
+      width: 100%;
+      padding: 10px 14px;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid #1e293b;
+      border-radius: 8px;
+      color: #e2e8f0;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      transition: all 0.2s ease;
+      outline: none;
+    }
+
+    .field-input:focus, .field-select:focus {
+      border-color: #f97316;
+      box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
+    }
+
+    .field-input::placeholder { color: #475569; }
+    .field-select option { background: #0f172a; color: #e2e8f0; }
+
+    .field-hint {
+      font-size: 10px;
+      color: #94a3b8;
+      margin-top: 4px;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+
+    .field-hint strong { color: #f472b6; }
+
+    .chips { display: flex; gap: 8px; }
+    .chips-wrap { display: flex; gap: 6px; flex-wrap: wrap; }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: 1.5px solid #1e293b;
+      background: rgba(15, 23, 42, 0.6);
+      color: #94a3b8;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      user-select: none;
+    }
+
+    .chip:hover { border-color: #334155; background: rgba(30, 41, 59, 0.8); color: #cbd5e1; }
+    .chip.active { border-color: #f97316; background: rgba(249, 115, 22, 0.12); color: #fb923c; }
+    .chip-flex { flex: 1; }
+    .chip-small { font-size: 12px; }
+
+    .combo-section { margin-top: 8px; }
+    .combo-label { font-size: 10px; color: #22c55e; }
+
+    .result-box {
+      margin-top: 24px;
+      padding: 16px;
+      background: rgba(15, 23, 42, 0.5);
+      border: 1.5px solid #1e293b;
+      border-radius: 12px;
+      transition: all 0.3s ease;
+    }
+
+    .result-box.complete { background: rgba(15, 23, 42, 0.9); border-color: #f97316; }
+    .result-box.over-limit { border-color: #ef4444; }
+
+    .result-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .result-label {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: #64748b;
+    }
+
+    .result-counter {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      font-weight: 600;
+      transition: color 0.2s ease;
+    }
+
+    .result-text {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      word-break: break-all;
+      min-height: 24px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      transition: background 0.15s ease;
+    }
+
+    .result-text.clickable { cursor: pointer; background: rgba(249, 115, 22, 0.06); }
+    .result-text.clickable:hover { background: rgba(249, 115, 22, 0.12); }
+    .copy-hint { margin-left: 8px; font-size: 11px; color: #64748b; }
+    .copied-hint { margin-left: 8px; font-size: 11px; color: #22c55e; font-weight: 600; }
+    .result-placeholder { color: #475569; }
+    .result-filename { color: #f8fafc; }
+
+    .warning-box {
+      margin-top: 8px;
+      padding: 6px 10px;
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+      border-radius: 6px;
+      font-size: 12px;
+      color: #f87171;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+
+    .hint-box {
+      padding: 6px 10px;
+      margin-top: 4px;
+      background: rgba(234, 179, 8, 0.08);
+      border: 1px solid rgba(234, 179, 8, 0.15);
+      border-radius: 6px;
+      font-size: 12px;
+      color: #eab308;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+
+    .buttons { margin-top: 14px; display: flex; flex-direction: column; gap: 8px; }
+
+    .btn-copy {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 10px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-copy.ready {
+      background: linear-gradient(135deg, #f97316, #ea580c);
+      color: white;
+      box-shadow: 0 4px 20px rgba(249, 115, 22, 0.3);
+    }
+
+    .btn-copy.ready:hover { transform: translateY(-1px); box-shadow: 0 6px 28px rgba(249, 115, 22, 0.4); }
+    .btn-copy.disabled { background: #1e293b; color: #475569; cursor: not-allowed; }
+    .btn-copy.copied { background: linear-gradient(135deg, #22c55e, #16a34a); color: white; }
+
+    .btn-reset {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #1e293b;
+      border-radius: 10px;
+      background: transparent;
+      color: #64748b;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-reset:hover { border-color: #334155; color: #94a3b8; }
+
+    .hidden { display: none; }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-6px); }
+      75% { transform: translateX(6px); }
+    }
+    .shake { animation: shake 0.4s ease; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .fade-in { animation: fadeIn 0.3s ease; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <div class="header-tag">Bahmann Coaching</div>
+    <h1>Ad-Dateinamen Generator</h1>
+    <div class="schema-bar">
+      <span class="schema-block" style="background:rgba(249,115,22,0.15);color:#fb923c">Datum</span>
+      <span class="schema-sep">_</span>
+      <span class="schema-block" style="background:rgba(56,189,248,0.12);color:#38bdf8">Funnel</span>
+      <span class="schema-sep">_</span>
+      <span class="schema-block" style="background:rgba(168,85,247,0.12);color:#a855f7">Format</span>
+      <span class="schema-sep">_</span>
+      <span class="schema-block" style="background:rgba(34,197,94,0.12);color:#22c55e">AdTyp</span>
+      <span class="schema-sep">_</span>
+      <span class="schema-block" style="background:rgba(251,191,36,0.12);color:#fbbf24">Name</span>
+      <span class="schema-sep">_</span>
+      <span class="schema-block" style="background:rgba(244,114,182,0.12);color:#f472b6">Hook</span>
+    </div>
+  </div>
+
+  <div class="form">
+    <div>
+      <label class="field-label" style="color:#fb923c">📅 Datum</label>
+      <input type="date" id="inp-date" class="field-input">
+    </div>
+
+    <div>
+      <label class="field-label" style="color:#38bdf8">🎯 Funnel</label>
+      <select id="inp-funnel" class="field-select">
+        <option value="">Funnel wählen...</option>
+        <option value="VSL-ECD">VSL-ECD – Endstation Crashdiät</option>
+        <option value="WJG">WJG – Wechseljahre-Guide</option>
+        <option value="NL">NL – Newsletter</option>
+        <option value="Homepage">Homepage</option>
+        <option value="Buchfunnel">Buchfunnel</option>
+        <option value="custom-vsl">VSL-xxx (eigener Name)</option>
+      </select>
+      <input type="text" id="inp-custom-vsl" class="field-input hidden" style="margin-top:8px" placeholder="VSL-Kürzel eingeben (z.B. ABC)">
+    </div>
+
+    <div>
+      <label class="field-label" style="color:#a855f7">📐 Format</label>
+      <div class="chips" id="format-chips">
+        <div class="chip chip-flex" data-value="4zu5">4:5</div>
+        <div class="chip chip-flex" data-value="16zu9">16:9</div>
+        <div class="chip chip-flex" data-value="9zu16">9:16</div>
+      </div>
+    </div>
+
+    <div>
+      <label class="field-label" style="color:#22c55e">🎬 AdTyp</label>
+      <div class="chips-wrap" id="adtype-chips">
+        <div class="chip" data-value="VO">VO – Voice-over</div>
+        <div class="chip" data-value="Selfie">Selfie</div>
+        <div class="chip" data-value="TB">TB – Tagebuch</div>
+        <div class="chip" data-value="BD">BD – Bahmannday</div>
+        <div class="chip" data-value="ITV">ITV – Interview</div>
+        <div class="chip" data-value="TH">TH – Talking Head</div>
+        <div class="chip" data-value="BA">BA – Bildad</div>
+      </div>
+      <div id="combo-section" class="combo-section hidden">
+        <label class="field-label combo-label">Kombination</label>
+        <div class="chips-wrap" id="combo-chips">
+          <div class="chip chip-small active" data-value="">Keine Kombination</div>
+          <div class="chip chip-small" data-value="VO">+ Voice-over (VO)</div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <label class="field-label" style="color:#fbbf24">👤 Name / Konzept</label>
+      <input type="text" id="inp-name" class="field-input" placeholder="z.B. Corinna-K02">
+      <div class="field-hint">So kurz wie möglich! Bindestriche statt Leerzeichen, Umlaute werden automatisch ersetzt.</div>
+    </div>
+
+    <div>
+      <label class="field-label" style="color:#f472b6">🪝 Hook</label>
+      <input type="text" id="inp-hook" class="field-input" placeholder='z.B. Hook3, MehrEssen oder "-" wenn keine Hook'>
+      <div class="field-hint">Pflichtfeld! Wenn keine Hook vorhanden, trage ein <strong>-</strong> ein.</div>
+    </div>
+  </div>
+
+  <div id="result-box" class="result-box">
+    <div class="result-header">
+      <span class="result-label">Ergebnis</span>
+      <span id="char-counter" class="result-counter" style="color:#64748b">0/80</span>
+    </div>
+    <div id="result-text" class="result-text">
+      <span class="result-placeholder">Bitte alle Pflichtfelder ausfüllen...</span>
+    </div>
+    <div id="warning-overlimit" class="warning-box hidden">⚠️ Zu lang! Kürze den Namen oder die Hook-Beschreibung.</div>
+  </div>
+
+  <div class="buttons">
+    <button id="btn-copy" class="btn-copy disabled">Pflichtfelder ausfüllen</button>
+    <button id="btn-reset" class="btn-reset">↺ Zurücksetzen</button>
+  </div>
+
+  <div id="hints" style="margin-top:12px"></div>
+</div>
+
+<script>
+  const state = { date: new Date().toISOString().split('T')[0], funnel: '', customVsl: '', format: '', adType: '', combo: '', name: '', hook: '', copied: false };
+
+  const $ = id => document.getElementById(id);
+  const inpDate = $('inp-date'), inpFunnel = $('inp-funnel'), inpCustomVsl = $('inp-custom-vsl');
+  const inpName = $('inp-name'), inpHook = $('inp-hook');
+  const resultBox = $('result-box'), resultText = $('result-text'), charCounter = $('char-counter');
+  const warningBox = $('warning-overlimit'), btnCopy = $('btn-copy'), btnReset = $('btn-reset');
+  const comboSection = $('combo-section'), hintsDiv = $('hints');
+
+  inpDate.value = state.date;
+
+  function sanitize(s) {
+    return s.replace(/ä/g,'ae').replace(/ö/g,'oe').replace(/ü/g,'ue').replace(/ß/g,'ss')
+      .replace(/Ä/g,'Ae').replace(/Ö/g,'Oe').replace(/Ü/g,'Ue')
+      .replace(/\s+/g,'-').replace(/[^a-zA-Z0-9\-]/g,'');
+  }
+
+  function getFunnel() { return state.funnel === 'custom-vsl' ? (state.customVsl ? 'VSL-' + sanitize(state.customVsl).toUpperCase() : '') : state.funnel; }
+  function getAdType() { return state.adType ? (state.combo ? state.adType + '-' + state.combo : state.adType) : ''; }
+
+  function buildFilename() {
+    const p = [state.date, getFunnel(), state.format, getAdType(), sanitize(state.name)];
+    if (state.hook.trim()) p.push(sanitize(state.hook));
+    return p.filter(Boolean).join('_');
+  }
+
+  function isComplete() {
+    return state.date && state.funnel && (state.funnel !== 'custom-vsl' || state.customVsl.trim())
+      && state.format && state.adType && state.name.trim() && state.hook.trim();
+  }
+
+  function copyToClipboard(t) {
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(showCopied).catch(() => fallbackCopy(t));
+    else fallbackCopy(t);
+  }
+
+  function fallbackCopy(t) {
+    const a = document.createElement('textarea'); a.value = t; a.style.cssText = 'position:fixed;opacity:0';
+    document.body.appendChild(a); a.select(); document.execCommand('copy'); document.body.removeChild(a); showCopied();
+  }
+
+  function showCopied() { state.copied = true; render(); setTimeout(() => { state.copied = false; render(); }, 2000); }
+
+  function render() {
+    const fn = buildFilename(), len = fn.length, ok = isComplete();
+    const col = len === 0 ? '#64748b' : len <= 60 ? '#22c55e' : len <= 80 ? '#eab308' : '#ef4444';
+    charCounter.style.color = col; charCounter.textContent = len + '/80';
+    resultBox.className = 'result-box' + (ok ? ' complete' : '') + (len > 80 && ok ? ' over-limit' : '');
+
+    if (ok) {
+      resultText.className = 'result-text clickable';
+      resultText.innerHTML = '<span class="result-filename">' + fn + '</span>' +
+        (state.copied ? '<span class="copied-hint">✓ Kopiert!</span>' : '<span class="copy-hint">← klicken zum Kopieren</span>');
+      resultText.onclick = () => { if (len <= 80) copyToClipboard(fn); };
+    } else {
+      resultText.className = 'result-text';
+      resultText.innerHTML = '<span class="result-placeholder">Bitte alle Pflichtfelder ausfüllen...</span>';
+      resultText.onclick = null;
+    }
+
+    warningBox.className = len > 80 && ok ? 'warning-box fade-in' : 'warning-box hidden';
+
+    if (state.copied) { btnCopy.className = 'btn-copy copied'; btnCopy.textContent = '✓ Kopiert!'; }
+    else if (ok && len <= 80) { btnCopy.className = 'btn-copy ready'; btnCopy.textContent = '📋 Dateinamen kopieren'; }
+    else { btnCopy.className = 'btn-copy disabled'; btnCopy.textContent = 'Pflichtfelder ausfüllen'; }
+
+    const h = [];
+    if (ok && /[äöüßÄÖÜ]/.test(state.name + state.hook)) h.push('💡 Umlaute/ß gefunden – werden automatisch ersetzt');
+    if (ok && /\s/.test(state.name + state.hook)) h.push('💡 Leerzeichen gefunden – werden automatisch durch Bindestriche ersetzt');
+    hintsDiv.innerHTML = h.map(x => '<div class="hint-box fade-in">' + x + '</div>').join('');
+
+    inpCustomVsl.className = state.funnel === 'custom-vsl' ? 'field-input fade-in' : 'field-input hidden';
+    comboSection.className = state.adType && state.adType !== 'VO' ? 'combo-section fade-in' : 'combo-section hidden';
+  }
+
+  function setupChips(cid, key, toggle) {
+    const c = document.getElementById(cid);
+    c.querySelectorAll('.chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        const v = chip.dataset.value;
+        state[key] = (toggle && state[key] === v) ? '' : v;
+        if (key === 'adType') state.combo = '';
+        c.querySelectorAll('.chip').forEach(x => x.classList.toggle('active', x.dataset.value === state[key]));
+        if (key === 'adType') document.getElementById('combo-chips').querySelectorAll('.chip').forEach(x => x.classList.toggle('active', x.dataset.value === ''));
+        render();
+      });
+    });
+  }
+
+  setupChips('format-chips', 'format', false);
+  setupChips('adtype-chips', 'adType', true);
+
+  document.getElementById('combo-chips').querySelectorAll('.chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      state.combo = chip.dataset.value;
+      document.getElementById('combo-chips').querySelectorAll('.chip').forEach(x => x.classList.toggle('active', x.dataset.value === state.combo));
+      render();
+    });
+  });
+
+  inpDate.addEventListener('input', () => { state.date = inpDate.value; render(); });
+  inpFunnel.addEventListener('change', () => { state.funnel = inpFunnel.value; state.customVsl = ''; inpCustomVsl.value = ''; render(); });
+  inpCustomVsl.addEventListener('input', () => { state.customVsl = inpCustomVsl.value.replace(/\s/g,''); render(); });
+  inpName.addEventListener('input', () => { state.name = inpName.value; render(); });
+  inpHook.addEventListener('input', () => { state.hook = inpHook.value; render(); });
+
+  btnCopy.addEventListener('click', () => {
+    if (!isComplete()) { resultBox.classList.add('shake'); setTimeout(() => resultBox.classList.remove('shake'), 500); return; }
+    const fn = buildFilename(); if (fn.length <= 80) copyToClipboard(fn);
+  });
+
+  btnReset.addEventListener('click', () => {
+    state.funnel = ''; state.customVsl = ''; state.format = ''; state.adType = '';
+    state.combo = ''; state.name = ''; state.hook = ''; state.copied = false;
+    inpFunnel.value = ''; inpCustomVsl.value = ''; inpName.value = ''; inpHook.value = '';
+    document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+    document.getElementById('combo-chips').querySelector('[data-value=""]').classList.add('active');
+    render();
+  });
+
+  render();
+</script>
+</body>
+</html>
